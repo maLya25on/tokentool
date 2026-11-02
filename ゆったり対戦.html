@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ゆったり対戦</title>
+<style>
+:root {
+  --bg: #f3f4f6;
+  --text: #1f2937;
+  --blue: #2563eb;
+  --red: #dc2626;
+  --btn-bg: #1f2937;
+  --btn-text: #ffffff;
+  --slot: #e5e7eb;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111827; --text: #f3f4f6; --blue: #3b82f6; --red: #ef4444;
+    --btn-bg: #f3f4f6; --btn-text: #111827; --slot: #1f2937;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111827; --text: #f3f4f6; --blue: #3b82f6; --red: #ef4444;
+  --btn-bg: #f3f4f6; --btn-text: #111827; --slot: #1f2937;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 28px;
+  padding: 20px 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+h1 {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+}
+#blue-row { margin-top: auto; }
+.label {
+  flex: 0 0 56px;
+  align-self: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+.label.blue { color: var(--blue); }
+.label.red { color: var(--red); }
+.reset-area { margin-bottom: auto; }
+.slot {
+  flex: 0 0 calc((100% - 106px) / 5);
+  aspect-ratio: 1 / 1;
+  background: var(--slot);
+  border-radius: 4px;
+}
+.token {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+  transition: transform .12s ease, opacity .12s ease;
+}
+.token:active { transform: scale(.9); }
+.token:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+.token.blue { background: var(--blue); }
+.token.red { background: var(--red); }
+.token.gone { opacity: 0; transform: scale(.6); pointer-events: none; }
+#reset {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 0;
+  border-radius: 8px;
+  padding: 16px 28px;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#reset:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+#reset[hidden] { display: none; }
+.reset-area { min-height: 56px; display: flex; align-items: center; }
+@media (prefers-reduced-motion: reduce) { .token { transition: none; } }
+</style>
+</head>
+<body>
+<h1>対戦数管理ツール</h1>
+<div class="row" id="blue-row" aria-label="青のトークン"><span class="label blue">WIN</span></div>
+<div class="row" id="red-row" aria-label="赤のトークン"><span class="label red">LOSE</span></div>
+<div class="reset-area"><button id="reset" type="button" hidden>勝敗数をリセット</button></div>
+
+<script>
+(function () {
+  var config = [
+    { id: 'blue-row', cls: 'blue', count: 5, label: '青のトークン' },
+    { id: 'red-row', cls: 'red', count: 4, label: '赤のトークン' }
+  ];
+  var tokens = { blue: [], red: [] };
+  var resetBtn = document.getElementById('reset');
+
+  function update() {
+    var blueLeft = tokens.blue.filter(function (t) { return !t.classList.contains('gone'); }).length;
+    var redLeft = tokens.red.filter(function (t) { return !t.classList.contains('gone'); }).length;
+    resetBtn.hidden = !(blueLeft === 0 || redLeft === 0);
+  }
+
+  config.forEach(function (c) {
+    var row = document.getElementById(c.id);
+    for (var i = 0; i < c.count; i++) {
+      var slot = document.createElement('div');
+      slot.className = 'slot';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'token ' + c.cls;
+      btn.setAttribute('aria-label', c.label + 'を消す');
+      btn.addEventListener('click', function (e) {
+        e.currentTarget.classList.add('gone');
+        update();
+      });
+      slot.appendChild(btn);
+      row.appendChild(slot);
+      tokens[c.cls].push(btn);
+    }
+  });
+
+  resetBtn.addEventListener('click', function () {
+    tokens.blue.concat(tokens.red).forEach(function (t) { t.classList.remove('gone'); });
+    update();
+  });
+})();
+</script>
+</body>
+</html>
